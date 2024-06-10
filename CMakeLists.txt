@@ -17,6 +17,7 @@ find_package(AWSSDK COMPONENTS s3 REQUIRED)
 find_package(hiredis REQUIRED)
 
 add_subdirectory(extern/TCPunch/client/)
+find_package(ZLIB REQUIRED)
 
 add_library(FMI STATIC src/Communicator.cpp src/utils/Configuration.cpp src/comm/Channel.cpp src/comm/ClientServer.cpp
         src/comm/S3.cpp src/comm/Redis.cpp src/utils/ChannelPolicy.cpp src/comm/PeerToPeer.cpp src/comm/Direct.cpp)
