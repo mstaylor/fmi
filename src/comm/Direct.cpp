@@ -5,6 +5,13 @@
 #include <thread>
 #include <netinet/tcp.h>
 #include <cmath>
+#include <iostream>
+#include <string>
+#include <cstring>
+#include <sys/types.h>
+#include <netdb.h>
+#include <arpa/inet.h>
+#include <memory>
 
 FMI::Comm::Direct::Direct(std::map<std::string, std::string> params, std::map<std::string, std::string> model_params) {
     struct addrinfo hints, *res, *p;
