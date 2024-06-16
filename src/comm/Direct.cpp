@@ -7,8 +7,48 @@
 #include <cmath>
 
 FMI::Comm::Direct::Direct(std::map<std::string, std::string> params, std::map<std::string, std::string> model_params) {
+    struct addrinfo hints, *res, *p;
+    int status;
+    char ipstr[INET6_ADDRSTRLEN];
+
     hostname = params["host"];
     port = std::stoi(params["port"]);
+    if (model_params["resolve_host_dns"] == "true") {
+
+        memset(&hints, 0, sizeof hints);
+        hints.ai_family = AF_INET;
+        hints.ai_socktype = SOCK_STREAM;
+
+        if ((status = getaddrinfo(hostname.c_str(), nullptr, &hints, &res)) != 0) {
+            std::cerr << "getaddrinfo error: " << gai_strerror(status) << std::endl;
+        } else {
+            // Iterate through the result list and convert each address to a string
+            for(p = res; p != nullptr; p = p->ai_next) {
+                void *addr;
+
+                // Get the pointer to the address itself,
+                struct sockaddr_in *ipv4 = (struct sockaddr_in *)p->ai_addr;
+                addr = &(ipv4->sin_addr);
+                ipver = "IPv4";
+
+                // Convert the IP to a string and print it:
+                inet_ntop(p->ai_family, addr, ipstr, sizeof ipstr);
+                std::cout << " resolved dns: " << ipstr << std::endl;
+            }
+
+            freeaddrinfo(res); // Free the linked list
+            hostname = ipstr;
+
+        }
+
+
+
+
+      resolve_host_dns = true;
+    } else {
+       resolve_host_dns = false;
+    }
+
     max_timeout = std::stoi(params["max_timeout"]);
     bandwidth = std::stod(model_params["bandwidth"]);
     overhead = std::stod(model_params["overhead"]);

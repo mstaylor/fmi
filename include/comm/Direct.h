@@ -22,6 +22,7 @@ namespace FMI::Comm {
         std::vector<int> sockets;
         std::string hostname;
         int port;
+        bool resolve_host_dns;
         unsigned int max_timeout;
         // Model params
         double bandwidth;
