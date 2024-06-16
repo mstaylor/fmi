@@ -36,7 +36,6 @@ FMI::Comm::Direct::Direct(std::map<std::string, std::string> params, std::map<st
                 // Get the pointer to the address itself,
                 struct sockaddr_in *ipv4 = (struct sockaddr_in *)p->ai_addr;
                 addr = &(ipv4->sin_addr);
-                ipver = "IPv4";
 
                 // Convert the IP to a string and print it:
                 inet_ntop(p->ai_family, addr, ipstr, sizeof ipstr);
