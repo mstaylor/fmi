@@ -113,11 +113,11 @@ int pair(const std::string& pairing_name, const std::string& server_address, int
         error_exit("Server has disconnected");
     }
 
-    pthread_t peer_listen_thread;
+    /*pthread_t peer_listen_thread;
     int thread_return = pthread_create(&peer_listen_thread, nullptr, peer_listen, (void*) &public_info);
     if(thread_return) {
         error_exit_errno("Error when creating thread for listening: ");
-    }
+    }*/
 
     PeerConnectionData peer_data;
 
@@ -175,16 +175,16 @@ int pair(const std::string& pairing_name, const std::string& server_address, int
             }
         } else {
             #if DEBUG
-            std::cout << "Succesfully connected to peer, peer_status" << std::endl;
+            std::cout << "Succesfully connected to peer" << std::endl;
             #endif
             break;
         }
     }
 
-    if(connection_established.load()) {
+    /*if(connection_established.load()) {
         pthread_join(peer_listen_thread, nullptr);
         peer_socket = accepting_socket.load();
-    }
+    }*/
 
     int flags = fcntl(peer_socket,  F_GETFL, 0);
     flags &= ~(O_NONBLOCK);
