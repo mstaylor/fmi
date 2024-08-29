@@ -56,11 +56,18 @@ FMI::Comm::Direct::Direct(std::map<std::string, std::string> params, std::map<st
     }
 
     max_timeout = std::stoi(params["max_timeout"]);
+    std::cout << "max_timeout set to: " >> max_timeout << std::endl;
     bandwidth = std::stod(model_params["bandwidth"]);
+
     overhead = std::stod(model_params["overhead"]);
+
     transfer_price = std::stod(model_params["transfer_price"]);
+
     vm_price = std::stod(model_params["vm_price"]);
+
     requests_per_hour = std::stoi(model_params["requests_per_hour"]);
+
+
     if (model_params["include_infrastructure_costs"] == "true") {
         include_infrastructure_costs = true;
     } else {
