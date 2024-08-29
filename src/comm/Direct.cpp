@@ -56,7 +56,7 @@ FMI::Comm::Direct::Direct(std::map<std::string, std::string> params, std::map<st
     }
 
     max_timeout = std::stoi(params["max_timeout"]);
-    std::cout << "max_timeout set to: " >> max_timeout << std::endl;
+    std::cout << "max_timeout set to: " << max_timeout << std::endl;
     bandwidth = std::stod(model_params["bandwidth"]);
 
     overhead = std::stod(model_params["overhead"]);
