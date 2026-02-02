@@ -36,24 +36,24 @@ FMI::Comm::S3::~S3() {
     }
 }
 
-bool FMI::Comm::S3::download_object(channel_data buf, std::string name) {
+bool FMI::Comm::S3::download_object(std::shared_ptr<channel_data> buf, std::string name) {
     Aws::S3::Model::GetObjectRequest request;
     request.WithBucket(bucket_name).WithKey(name);
     auto outcome = client->GetObject(request);
     if (outcome.IsSuccess()) {
         auto& s = outcome.GetResult().GetBody();
-        s.read(buf.buf, buf.len);
+        s.read(buf->get(), buf->len);
         return true;
     } else {
         return false;
     }
 }
 
-void FMI::Comm::S3::upload_object(channel_data buf, std::string name) {
+void FMI::Comm::S3::upload_object(std::shared_ptr<channel_data> buf, std::string name) {
     Aws::S3::Model::PutObjectRequest request;
     request.WithBucket(bucket_name).WithKey(name);
 
-    const std::shared_ptr<Aws::IOStream> data = Aws::MakeShared<boost::interprocess::bufferstream>(TAG, buf.buf, buf.len);
+    const std::shared_ptr<Aws::IOStream> data = Aws::MakeShared<boost::interprocess::bufferstream>(TAG, buf->get(), buf->len);
 
     request.SetBody(data);
     auto outcome = client->PutObject(request);
@@ -102,4 +102,3 @@ double FMI::Comm::S3::get_price(Utils::peer_num producer, Utils::peer_num consum
     double download_costs = producer * consumer * expected_polls * download_price + producer * consumer * ((double) size_in_bytes / 1000000000.) * transfer_price;
     return upload_costs + download_costs;
 }
-

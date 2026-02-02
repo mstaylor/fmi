@@ -3,7 +3,8 @@ project(FMI)
 set(CMAKE_CXX_STANDARD 17)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-set(Boost_USE_STATIC_LIBS   ON)
+option(FMI_BOOST_STATIC "Use static Boost libraries" ON)
+set(Boost_USE_STATIC_LIBS ${FMI_BOOST_STATIC})
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
@@ -32,4 +33,4 @@ target_link_libraries(FMI ${Boost_Libraries} Boost::log ${AWSSDK_LINK_LIBRARIES}
 
 #target_link_libraries(client FMI OpenMP::OpenMP_CXX)
 
-#add_subdirectory(tests)
+add_subdirectory(tests)

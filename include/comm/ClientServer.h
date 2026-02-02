@@ -15,34 +15,49 @@ namespace FMI::Comm {
         explicit ClientServer(std::map<std::string, std::string> params);
 
         //! Constructs file / key name based on sender and recipient and then uploads the data.
-        void send(channel_data buf, FMI::Utils::peer_num dest) override;
+        void send(std::shared_ptr<channel_data> buf, FMI::Utils::peer_num dest) override;
+
+        //! Non-blocking send (not fully supported in client-server mode)
+        void send(std::shared_ptr<channel_data> buf, FMI::Utils::peer_num dest,
+                  FMI::Utils::fmiContext* context, FMI::Utils::Mode mode,
+                  std::function<void(FMI::Utils::NbxStatus, const std::string&,
+                                    FMI::Utils::fmiContext*)> callback) override;
 
         //! Waits until the object with the expected file / key name appears (or a timeout occurs), then downloads it.
-        void recv(channel_data buf, FMI::Utils::peer_num dest) override;
+        void recv(std::shared_ptr<channel_data> buf, FMI::Utils::peer_num dest) override;
+
+        //! Non-blocking recv (not fully supported in client-server mode)
+        void recv(std::shared_ptr<channel_data> buf, FMI::Utils::peer_num src,
+                  FMI::Utils::fmiContext* context, FMI::Utils::Mode mode,
+                  std::function<void(FMI::Utils::NbxStatus, const std::string&,
+                                    FMI::Utils::fmiContext*)> callback) override;
 
         //! Root uploads its data, all other peers download the object
-        void bcast(channel_data buf, FMI::Utils::peer_num root) override;
+        void bcast(std::shared_ptr<channel_data> buf, FMI::Utils::peer_num root) override;
 
         //! All peers upload a 1 byte file and wait until num_peers files (associated to this operation based on the file name) exist
         void barrier() override;
 
+        //! Event progress (client-server returns NOOP as operations are synchronous)
+        Utils::EventProcessStatus channel_event_progress(Utils::Operation op) override;
+
         //! All peers upload their data. The root peer downloads these objects and applies the function (as soon as objects become available for associative / commutative functions, left-to-right otherwise)
-        void reduce(channel_data sendbuf, channel_data recvbuf, FMI::Utils::peer_num root, raw_function f) override;
+        void reduce(std::shared_ptr<channel_data> sendbuf, std::shared_ptr<channel_data> recvbuf, FMI::Utils::peer_num root, raw_function f) override;
 
         //! All peers upload their data and download the needed files to apply the function. Left-to-right evaluation order is enforced for non-commutative / non-associative functions.
-        void scan(channel_data sendbuf, channel_data recvbuf, raw_function f) override;
+        void scan(std::shared_ptr<channel_data> sendbuf, std::shared_ptr<channel_data> recvbuf, raw_function f) override;
 
         //! Function to upload data with a given name / key to the server, needs to be implemented by the channels and should never be invoked directly (use upload instead).
-        virtual void upload_object(channel_data buf, std::string name) = 0;
+        virtual void upload_object(std::shared_ptr<channel_data> buf, std::string name) = 0;
 
         //! Function to download data with a given name / key from the server, needs to be implemented by the channels. Returns true when download was successful, false when file does not exist.
-        virtual bool download_object(channel_data buf, std::string name) = 0;
+        virtual bool download_object(std::shared_ptr<channel_data> buf, std::string name) = 0;
 
         //! Try the download (using download_object) until the object appears or the timeout was reached.
-        virtual void download(channel_data buf, std::string name);
+        virtual void download(std::shared_ptr<channel_data> buf, std::string name);
 
         //! Uploads objects and keeps track of them.
-        virtual void upload(channel_data buf, std::string name);
+        virtual void upload(std::shared_ptr<channel_data> buf, std::string name);
 
         //! List all the currently existing objects, needs to be implemented by channels. Needed by some collectives that check for the existence of files, but do not care about their content.
         virtual std::vector<std::string> get_object_names() = 0;

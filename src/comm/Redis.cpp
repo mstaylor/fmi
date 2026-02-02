@@ -31,23 +31,23 @@ FMI::Comm::Redis::~Redis() {
     redisFree(context);
 }
 
-void FMI::Comm::Redis::upload_object(channel_data buf, std::string name) {
+void FMI::Comm::Redis::upload_object(std::shared_ptr<channel_data> buf, std::string name) {
     std::string command = "SET " + name + " %b";
-    auto* reply = (redisReply*) redisCommand(context, command.c_str(), buf.buf, buf.len);
+    auto* reply = (redisReply*) redisCommand(context, command.c_str(), buf->get(), buf->len);
     if (reply->type == REDIS_REPLY_ERROR) {
         BOOST_LOG_TRIVIAL(error) << "Error when uploading to Redis: " << reply->str;
     }
     freeReplyObject(reply);
 }
 
-bool FMI::Comm::Redis::download_object(channel_data buf, std::string name) {
+bool FMI::Comm::Redis::download_object(std::shared_ptr<channel_data> buf, std::string name) {
     std::string command = "GET " + name;
     auto* reply = (redisReply*) redisCommand(context, command.c_str());
     if (reply->type == REDIS_REPLY_NIL || reply->type == REDIS_REPLY_ERROR) {
         freeReplyObject(reply);
         return false;
     } else {
-        std::memcpy(buf.buf, reply->str, std::min(buf.len, reply->len));
+        std::memcpy(buf->get(), reply->str, std::min(buf->len, reply->len));
         freeReplyObject(reply);
         return true;
     }
@@ -63,7 +63,7 @@ std::vector<std::string> FMI::Comm::Redis::get_object_names() {
     std::vector<std::string> keys;
     std::string command = "KEYS *";
     auto* reply = (redisReply*) redisCommand(context, command.c_str());
-    for (int i = 0; i < reply->elements; i++) {
+    for (size_t i = 0; i < reply->elements; i++) {
         keys.emplace_back(reply->element[i]->str);
     }
     return keys;
@@ -83,4 +83,3 @@ double FMI::Comm::Redis::get_price(Utils::peer_num producer, Utils::peer_num con
     }
     return total_costs;
 }
-
