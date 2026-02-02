@@ -70,10 +70,11 @@ namespace FMI::Comm {
         //! Generate pairing name with mode distinction
         std::string get_pairing_name(Utils::peer_num a, Utils::peer_num b, Utils::Mode mode);
 
-        //! Event handling for progress
-        void handle_event(int socketfd,
-                         std::unordered_map<int, std::shared_ptr<IOState>>& states,
-                         Utils::Operation op) const;
+        //! Event handling for progress. Returns iterator to next element.
+        std::unordered_map<int, std::shared_ptr<IOState>>::iterator
+        handle_event(std::unordered_map<int, std::shared_ptr<IOState>>::iterator it,
+                     std::unordered_map<int, std::shared_ptr<IOState>>& states,
+                     Utils::Operation op);
     };
 }
 

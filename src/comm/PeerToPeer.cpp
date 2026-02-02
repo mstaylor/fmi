@@ -31,7 +31,7 @@ void FMI::Comm::PeerToPeer::recv(std::shared_ptr<channel_data> buf, FMI::Utils::
     state->setRequest(buf);
     state->context = context;
     state->callbackResult = callback;
-    state->operation = Utils::send;  // recv uses send operation for tracking
+    state->operation = Utils::recv;
     recv_object(state, src, mode);
 }
 

@@ -60,7 +60,7 @@ namespace FMI::Utils {
 
     //! List of currently supported collectives
     enum Operation {
-        send, bcast, barrier, gather, gatherv, allgather, allgatherv,
+        send, recv, bcast, barrier, gather, gatherv, allgather, allgatherv,
         scatter, reduce, allreduce, scan
     };
 

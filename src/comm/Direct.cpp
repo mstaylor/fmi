@@ -184,8 +184,8 @@ void FMI::Comm::Direct::recv_object(std::shared_ptr<IOState> state, Utils::peer_
             state->callbackResult(Utils::SUCCESS, "", state->context);
         }
     } else {
-        // Register for progress - use send operation for recv tracking
-        io_states[Utils::send][sock] = state;
+        // Register for progress
+        io_states[Utils::recv][sock] = state;
     }
 }
 
@@ -210,22 +210,22 @@ FMI::Utils::EventProcessStatus FMI::Comm::Direct::channel_event_progress(Utils::
             continue;
         }
 
-        handle_event(sock, states, op);
+        it = handle_event(it, states, op);
         any_processed = true;
-        ++it;
     }
 
     return any_processed ? Utils::PROCESSING : Utils::NOOP;
 }
 
-void FMI::Comm::Direct::handle_event(int socketfd,
-                                      std::unordered_map<int, std::shared_ptr<IOState>>& states,
-                                      Utils::Operation op) const {
-    auto it = states.find(socketfd);
+std::unordered_map<int, std::shared_ptr<FMI::Comm::IOState>>::iterator
+FMI::Comm::Direct::handle_event(std::unordered_map<int, std::shared_ptr<FMI::Comm::IOState>>::iterator it,
+                                 std::unordered_map<int, std::shared_ptr<FMI::Comm::IOState>>& states,
+                                 Utils::Operation op) {
     if (it == states.end()) {
-        return;
+        return it;
     }
 
+    int socketfd = it->first;
     auto& state = it->second;
 
     // Use poll to check readiness
@@ -236,7 +236,7 @@ void FMI::Comm::Direct::handle_event(int socketfd,
 
     int ret = poll(&pfd, 1, 0);  // Non-blocking poll
     if (ret <= 0) {
-        return;
+        return ++it;
     }
 
     if (pfd.revents & POLLOUT) {
@@ -259,8 +259,7 @@ void FMI::Comm::Direct::handle_event(int socketfd,
             if (state->callbackResult) {
                 state->callbackResult(Utils::CONNECTION_CLOSED_BY_PEER, "Connection closed", state->context);
             }
-            states.erase(it);
-            return;
+            return states.erase(it);
         }
     }
 
@@ -272,8 +271,9 @@ void FMI::Comm::Direct::handle_event(int socketfd,
         if (state->callback) {
             state->callback();
         }
-        states.erase(it);
+        return states.erase(it);
     }
+    return ++it;
 }
 
 void FMI::Comm::Direct::check_socket(FMI::Utils::peer_num partner_id, std::string pair_name) {

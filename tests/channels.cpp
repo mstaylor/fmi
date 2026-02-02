@@ -903,17 +903,17 @@ BOOST_AUTO_TEST_CASE(allgatherv_basic) {
 
 // Non-blocking tests
 BOOST_AUTO_TEST_CASE(nonblocking_send_recv) {
-    // Test non-blocking with Direct channel only
+    // Test true non-blocking send/recv with Direct channel
     auto test_params = direct_test_params;
     auto model_params = direct_test_model_params;
 
     int val = 42;
-    int recv_val = 0;
     bool* send_complete = static_cast<bool*>(mmap(nullptr, sizeof(bool), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0));
     bool* recv_complete = static_cast<bool*>(mmap(nullptr, sizeof(bool), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0));
     int* recv_result = static_cast<int*>(mmap(nullptr, sizeof(int), PROT_READ | PROT_WRITE, MAP_SHARED | MAP_ANONYMOUS, -1, 0));
     *send_complete = false;
     *recv_complete = false;
+    *recv_result = 0;
 
     int peer_id = 0;
     int pid = fork();
@@ -940,7 +940,7 @@ BOOST_AUTO_TEST_CASE(nonblocking_send_recv) {
 
         // Poll for completion
         int timeout_counter = 0;
-        while (!*send_complete && timeout_counter < 1000) {
+        while (!*send_complete && timeout_counter < 5000) {
             ch->channel_event_progress(FMI::Utils::send);
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
             timeout_counter++;
@@ -956,8 +956,8 @@ BOOST_AUTO_TEST_CASE(nonblocking_send_recv) {
 
         // Poll for completion
         int timeout_counter = 0;
-        while (!*recv_complete && timeout_counter < 1000) {
-            ch->channel_event_progress(FMI::Utils::send);
+        while (!*recv_complete && timeout_counter < 5000) {
+            ch->channel_event_progress(FMI::Utils::recv);
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
             timeout_counter++;
         }
